@@ -1,56 +1,10 @@
 """
 Tools for converting between binary format types
 """
-import typing
+#import typing
 import os
 import subprocess
-
-class DataBlock:
-    """
-    Block of data on a memory device, eg, flash.
-    """
-    def __init__(self,address:int,data:bytes):
-        self.address=address
-        self.data=data
-
-    def __repr__(self):
-        """
-        Dumps as a byte table
-        """
-        from byteFormatting import byteText,ansiColorize
-        import re
-        return ansiColorize(
-            byteText(self.data,
-                lineNumberStartAt=self.address,lineLength=32),
-            {re.compile(r"^[^\s]*",re.MULTILINE):46}
-            )
-
-
-class DataBlocks:
-    """
-    Set of data blocks
-    """
-    def __init__(self,dataBlocks:typing.Iterable[DataBlock]=()):
-        self.blocks:typing.List[DataBlock]=[]
-        if dataBlocks:
-            self.append(dataBlocks)
-
-    def __iter__(self):
-        return self.blocks.__iter__()
-
-    def append(self,block:typing.Union[DataBlock,typing.Iterable[DataBlock]]):
-        """
-        Add more data blocks
-        """
-        if isinstance(block,DataBlock):
-            self.blocks.append(block)
-        else:
-            self.blocks.extend(block)
-    add=append
-    extend=append
-
-    def __repr__(self):
-        return '\n\n'.join([repr(block) for block in self.blocks])
+from .dataBlocks import DataBlock,DataBlocks
 
 
 def elfFileToIhexFile(filename:str)->str:
