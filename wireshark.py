@@ -4,8 +4,23 @@ Tools for working with wireshark captures.
 requires the pyshark library
 """
 import typing
-import pyshark # type: ignore
-from pyshark.packet.packet import Packet # type: ignore
+try:
+    import pyshark # type: ignore
+    from pyshark.packet.packet import Packet # type: ignore
+    hasPyShark=True
+    def requirePyshark():
+        """
+        Function that raises exception when pyshark is not installed
+        """
+except ImportError:
+    hasPyShark=False
+    class Packet: # type: ignore
+        """ Dummy for when pyshark is not installed """
+    def requirePyshark():
+        """
+        Function that raises exception when pyshark is not installed
+        """
+        raise ImportError("pyshark library is required for this funtion. Install with\n\tpip install pyshark") # noqa: E501 # pylint: disable=line-too-long
 
 def saveCapture(
     capture:pyshark.LiveCapture,
@@ -13,6 +28,7 @@ def saveCapture(
     """
     Save a capture to file
     """
+    requirePyshark()
     with pyshark.FileCapture(output_file=filename) as file:
         for packet in capture:
             # TODO: figure this out
@@ -24,6 +40,7 @@ def loadCapture(
     """
     Load a serial capture
     """
+    requirePyshark()
     packet:Packet
     packets:typing.List[Packet]=[]
     with pyshark.FileCapture(filename) as file:
