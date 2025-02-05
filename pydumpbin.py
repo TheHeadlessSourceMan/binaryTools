@@ -8,16 +8,19 @@ https://learn.microsoft.com/en-us/cpp/build/reference/dumpbin-options?view=msvc-
 """
 import typing
 import os
+from pathlib import Path
 import k_runner.osrun as osrun
 
 
-def _dumpbin(filename:str)->typing.Iterable[str]:
+def _dumpbin(filename:typing.Union[str,Path])->typing.Iterable[str]:
     """
     call the dumpbin program
     """
-    dumpbin_exe=r"C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\bin\Hostx64\x64\dumpbin.exe" # noqa: E501 # pylint: disable=line-too-long
+    if not isinstance(filename,Path):
+        filename=Path(filename)
+    dumpbin_exe=Path(r"C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\VC\Tools\MSVC\14.16.27023\bin\Hostx64\x64\dumpbin.exe") # noqa: E501 # pylint: disable=line-too-long
     cmd=['cmd','/c',dumpbin_exe,'/ALL',filename]
-    workingDirectory=filename.rsplit(os.sep,1)[0]
+    workingDirectory=filename.parent
     print(' '.join([f'"{c}"' for c in cmd]))
     print(workingDirectory)
     dumpbin=osrun.OsRun(cmd,shell=True)
