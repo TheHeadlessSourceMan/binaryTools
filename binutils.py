@@ -8,8 +8,8 @@ executables and libraries on any system that binutils supports.
 
 NOTE: on windows, these ship with the mingw compiler.
 
-TODO: there are other packages that do this by accessing 
-BFD (Binary File Descriptor) library directly, which would 
+TODO: there are other packages that do this by accessing
+BFD (Binary File Descriptor) library directly, which would
 be more efficient than command line fiddling.
     https://github.com/syscall7/python-bfd
     https://ftp.gnu.org/old-gnu/Manuals/bfd-2.9.1/html_chapter/bfd_1.html
@@ -28,6 +28,7 @@ def nm(filename:str,data:typing.Optional[bytes]):
     """
     call the binutils nm util
     """
+    raise NotImplementedError()
 
 def valgrind(filename:str):
     """
@@ -37,6 +38,7 @@ def valgrind(filename:str):
     https://stackoverflow.com/questions/517589/tools-to-get-a-pictorial-function-call-graph-of-code/31190167#31190167
     https://stackoverflow.com/questions/375913/how-do-i-profile-c-code-running-on-linux/378024#378024
     """
+    raise NotImplementedError()
 
 def gprof(
     filename:str,
@@ -67,7 +69,7 @@ def listExports(filename:str,data:typing.Optional[bytes])->typing.List[str]:
     List symbols exported by a module
     """
     nmresults=nm(filename,data)
-    return []
+    raise NotImplementedError()
 
 def visualStudioCoverage(filename:str)->str:
     """
@@ -117,4 +119,3 @@ if __name__=='__main__':
     import sys
     results=visualStudioCoverage(sys.argv[1])
     print(results)
-

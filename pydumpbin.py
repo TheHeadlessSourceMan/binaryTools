@@ -7,7 +7,6 @@ See also:
 https://learn.microsoft.com/en-us/cpp/build/reference/dumpbin-options?view=msvc-170
 """
 import typing
-import os
 from pathlib import Path
 import k_runner.osrun as osrun
 
