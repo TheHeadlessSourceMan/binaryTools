@@ -7,6 +7,59 @@ import subprocess
 from .dataBlocks import DataBlock,DataBlocks
 
 
+WindowsExecutableExtension='.exe'
+WindowsDynamicLibraryExtension='.dll'
+WindowsStaticLibraryExtension='.lib'
+WindowsObjectFileExtension='.obj'
+WindowsStaticExportExtensions=[
+    WindowsStaticLibraryExtension,
+    WindowsObjectFileExtension]
+WindowsBinaryExtensions=[
+    WindowsExecutableExtension,
+    WindowsDynamicLibraryExtension,
+    WindowsStaticLibraryExtension,
+    WindowsObjectFileExtension]
+
+LinuxExecutableExtension=''
+LinuxDynamicLibraryExtension='.ld'
+LinuxStaticLibraryExtension='.a'
+LinuxObjectFileExtension='.o'
+LinuxStaticExportExtensions=[
+    LinuxStaticLibraryExtension,
+    LinuxObjectFileExtension]
+LinuxBinaryExtensions=[
+    LinuxDynamicLibraryExtension,
+    LinuxStaticLibraryExtension,
+    LinuxObjectFileExtension]
+
+if os.name=='nt':
+    CurrentOsExecutableExtension=WindowsExecutableExtension
+    CurrentOsDynamicLibraryExtension=WindowsDynamicLibraryExtension
+    CurrentOsStaticLibraryExtension=WindowsStaticLibraryExtension
+    CurrentOsObjectFileExtension=WindowsObjectFileExtension
+    CurrentOsStaticExportExtensions=WindowsStaticExportExtensions
+    CurrentOsBinaryExtensions=WindowsBinaryExtensions
+else:
+    CurrentOsExecutableExtension=LinuxExecutableExtension
+    CurrentOsDynamicLibraryExtension=LinuxDynamicLibraryExtension
+    CurrentOsStaticLibraryExtension=LinuxStaticLibraryExtension
+    CurrentOsObjectFileExtension=LinuxObjectFileExtension
+    CurrentOsStaticExportExtensions=LinuxStaticExportExtensions
+    CurrentOsBinaryExtensions=LinuxBinaryExtensions
+CurrentExecutableExtension=CurrentOsExecutableExtension
+CurrentDynamicLibraryExtension=CurrentOsDynamicLibraryExtension
+CurrentStaticLibraryExtension=CurrentOsStaticLibraryExtension
+CurrentObjectFileExtension=CurrentOsObjectFileExtension
+CurrentStaticExportExtensions=CurrentOsStaticExportExtensions
+CurrentBinaryExtensions=CurrentOsBinaryExtensions
+ExecutableExtension=CurrentExecutableExtension
+DynamicLibraryExtension=CurrentDynamicLibraryExtension
+StaticLibraryExtension=CurrentStaticLibraryExtension
+ObjectFileExtension=CurrentObjectFileExtension
+StaticExportExtensions=CurrentStaticExportExtensions
+BinaryExtensions=CurrentBinaryExtensions
+
+
 def elfFileToIhexFile(filename:str)->str:
     """
     Convert a .elf file into a .hex file
