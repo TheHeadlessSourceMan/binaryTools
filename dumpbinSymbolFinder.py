@@ -32,6 +32,7 @@ class Symbol:
     def __repr__(self):
         return self.name
 
+
 # Global cache of files to symbols.
 # Probably a bad idea to use this directly.
 # Use getSymbols() instead.
@@ -123,7 +124,7 @@ def findBinaries(
     if searchPaths is None:
         searchPaths='.'
     if binaryExtensions is None:
-        from binaryFormats import StaticExportExtensions
+        from binaryTools.binaryFormats import StaticExportExtensions
         binaryExtensions=StaticExportExtensions
     searched=set()
     needToSearch=asPaths(searchPaths)
@@ -136,6 +137,7 @@ def findBinaries(
                 yield file
             elif recursive and file.is_dir():
                 needToSearch.append(file)
+
 
 def findSymbolDefinition(
     symbolName:str,
@@ -159,7 +161,7 @@ def findSymbolDefinitions(
     searchPaths:typing.Optional[PathsLike]=None,
     binaryExtensions:typing.Optional[typing.Iterable[str]]=None,
     recursive:bool=True
-    )->typing.Dict[Path,typing.List[str]]:
+    )->typing.Dict[typing.Optional[Path],typing.List[str]]:
     """
     Find where a series of symbols are defined
 
@@ -167,14 +169,19 @@ def findSymbolDefinitions(
     :binaryExtensions: if None, assumes the system StaticExportExtensions
 
     :return: {filename:[requestedSymbols]}
+        where any unfound symbols in the list are filed under [None]
     """
     if isinstance(symbolNames,str):
         symbolNames=[symbolNames]
+    missing=set(symbolNames)
     ret={}
     for filename in findBinaries(searchPaths,binaryExtensions,recursive):
         exports=doesItExportAny(symbolNames,filename)
         if exports:
             ret[filename]=exports
+            for export in exports:
+                missing.remove(export)
+    ret[None]=missing
     return ret
 
 
@@ -183,7 +190,7 @@ def findSymbolDefinitionsInErrorString(
     searchPaths:typing.Optional[PathsLike]=None,
     binaryExtensions:typing.Optional[typing.Iterable[str]]=None,
     recursive:bool=True
-    )->typing.Dict[Path,typing.List[str]]:
+    )->typing.Dict[typing.Optional[Path],typing.List[str]]:
     """
     Find where missing symbols are defined
 
@@ -192,6 +199,7 @@ def findSymbolDefinitionsInErrorString(
     :binaryExtensions: if None, assumes the system StaticExportExtensions
 
     :return: {filename:[requestedSymbols]}
+        where any unfound symbols in the list are filed under [None]
     """
     symbolNames=set()
     for line in errString.split('\n'):
