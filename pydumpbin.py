@@ -70,26 +70,29 @@ class Obj:
         return '\n\t'.join(ret)
 
 
-def dumpbin(filename:str)->typing.Dict[str,Obj]:
+def dumpbin(
+    filename:typing.Union[str,Path])->typing.Dict[str,Obj]:
     """
     call the dumpbin utility on a file
     and get the object files that constitute it
     """
     objs={}
     objCurrent=None
-    with open(filename,'r',encoding='utf-8',errors='ignore') as f:
-        for line in f:
-            orig=line.rstrip()
-            line=orig.lstrip()
-            #indent=len(orig)-len(line)
-            if line.startswith("Archive member name at "):
-                if objCurrent is not None:
-                    objs[objCurrent.name]=objCurrent
-                objCurrent=Obj(line)
-            elif objCurrent is not None:
-                objCurrent.addLine(line)
-            else:
-                pass #print(line)
+    if not isinstance(filename,Path):
+        filename=Path(filename)
+    data=filename.read_text(encoding='utf-8',errors='ignore')
+    for line in data.split('\n'):
+        orig=line.rstrip()
+        line=orig.lstrip()
+        #indent=len(orig)-len(line)
+        if line.startswith("Archive member name at "):
+            if objCurrent is not None:
+                objs[objCurrent.name]=objCurrent
+            objCurrent=Obj(line)
+        elif objCurrent is not None:
+            objCurrent.addLine(line)
+        else:
+            pass #print(line)
     if objCurrent is not None:
         objs[objCurrent.name]=objCurrent
     for v in objs.values():
