@@ -8,8 +8,23 @@ NOTE: this will be equivilent to the wireshark filter:
 import typing
 import time
 import threading
-import pyshark # type: ignore
-from pyshark.packet.packet import Packet # type: ignore
+try:
+    import pyshark # type: ignore
+    from pyshark.packet.packet import Packet # type: ignore
+    hasPyShark=True
+    def requirePyshark(): # type: ignore
+        """
+        Function that raises exception when pyshark is not installed
+        """
+except ImportError:
+    hasPyShark=False
+    class Packet: # type: ignore
+        """ Dummy for when pyshark is not installed """
+    def requirePyshark():
+        """
+        Function that raises exception when pyshark is not installed
+        """
+        raise ImportError("pyshark library is required for this funtion. Install with\n\tpip install pyshark") # noqa: E501 # pylint: disable=line-too-long
 try:
     from serial import Serial # type: ignore
     hasPySerial=True
@@ -19,7 +34,10 @@ except ImportError:
         """
         Dummy stand-in for serial.Serial
         """
+        def __init__(self,_):
+            pass
     hasPySerial=False
+
 
 if __name__=='__main__':
     import os
@@ -33,13 +51,13 @@ def captureSerial(
     data:typing.Optional[bytes]=None,
     regex:typing.Optional[typing.Pattern]=None,
     interface:str="USBPcap2"
-    )->typing.Tuple[bool,pyshark.LiveCapture]:
+    )->typing.Tuple[bool,pyshark.LiveCapture]: # type: ignore
     """
     Capture serial data
 
     returns (timeoutOccourred,capture)
     """
-    capture=pyshark.LiveCapture(
+    capture=pyshark.LiveCapture( # type: ignore
         interface=interface,
         display_filter="ftdi-ft.if_a_rx_payload || ftdi-ft.if_a_tx_payload")
     startTime=time.time()
@@ -47,7 +65,7 @@ def captureSerial(
     capture.close()
     packet:Packet
     for packet in capture:
-        if data is not None and packet.find(data):
+        if data is not None and packet.find(data): # type: ignore
             return False,capture
         if regex is not None and regex.match(data) is not None:
             return False,capture
@@ -62,7 +80,7 @@ def runAndCapture(
     data:typing.Optional[bytes]=None,
     regex:typing.Optional[typing.Pattern]=None,
     interface:str="USBPcap2"
-    )->typing.Tuple[bool,pyshark.LiveCapture,str]:
+    )->typing.Tuple[bool,pyshark.LiveCapture,str]: # type: ignore
     """
     Run a serial command and capture the output
 
@@ -82,25 +100,23 @@ def runAndCapture(
     thread=threading.Thread(target=captureThreadFn)
     thread.start()
     try:
-        serial.write(command+'\n')
+        serial.write(command+'\n') # type: ignore
         time.sleep(0.5)
-        commandResponse=serial.read(serial.in_waiting())
+        commandResponse=serial.read(serial.in_waiting()) # type: ignore
     except Exception as e:
         print(e)
     thread.join()
     return (
         functionResults["timedOut"], # type: ignore
         functionResults["capture"], # type: ignore
-        commandResponse)
+        commandResponse) # type: ignore
 
 def example():
     """
     Example to show how runAndCapture() works
     """
-    # using pySerial
-    from serial import Serial # type: ignore
     serial=Serial("COM5")
-    timeout,capture,_=runAndCapture(serial,"?",10)
+    timeout,capture,_=runAndCapture(serial,"?",10) # type: ignore
     for packet in capture:
         print(packet)
     if timeout:

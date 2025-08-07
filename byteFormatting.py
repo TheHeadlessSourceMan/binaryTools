@@ -30,7 +30,7 @@ def str2Bytes(s:typing.Union[bytes,bytearray,str]):
     """
     if isinstance(s,(bytes,bytearray)):
         s=s.decode('utf-8',errors='ignore')
-    s=s.replace(',','').replace(' ','').replace('\t','')\
+    s=str(s).replace(',','').replace(' ','').replace('\t','')\
         .replace('\r','').replace('\n','')
     if s.startswith("b'"): # python b strings
         # mitigate against injection attacks
@@ -88,6 +88,7 @@ def undoByteText(
     if isinstance(s,str):
         s=s.strip().split('\n')
     b=bytearray()
+    s=typing.cast(typing.Iterable[str],s)
     for line in s:
         line=line.strip()
         if not line:
@@ -161,9 +162,13 @@ def ansiUndoColorize(s:str)->str:
 
 
 def ansiColorize(s:typing.Union[str,typing.Iterable[str]],
-    rules:typing.Iterable[typing.Tuple[
-        typing.Union[str,typing.Pattern],
-        typing.Union[int,str]]]):
+    rules:typing.Union[
+        typing.Iterable[typing.Tuple[
+            typing.Union[str,typing.Pattern],
+            typing.Union[int,str]]],
+        typing.Dict[
+            typing.Union[str,typing.Pattern],
+            typing.Union[int,str]]]):
     """
     :rules: map text to ansi escape code color
         the text can either be plain text or a compiled regex
@@ -177,6 +182,8 @@ def ansiColorize(s:typing.Union[str,typing.Iterable[str]],
     if not isinstance(s,str):
         s='\n'.join(s)
     colorReset='\033[0m'
+    if isinstance(rules,dict):
+        rules=typing.cast(typing.Iterable,rules.items())
     for k,v in rules:
         if isinstance(v,int):
             if v>=40: # background color

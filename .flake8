@@ -19,3 +19,6 @@ ignore =
     E306
     E502
 
+per-file-ignores =
+    __init__.py:F401,F403
+    */__init__.py:F401,F403

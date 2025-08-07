@@ -27,7 +27,13 @@ class Symbol:
         """
         Is this an exported symbol
         """
-        return not self.isImport()
+        return not self.isImport
+
+    def __eq__(self,other):
+        return str(other)==self.name
+
+    def __str__(self):
+        return self.name
 
     def __repr__(self):
         return self.name
@@ -52,8 +58,8 @@ def getSymbols(
     """
     filename=asPath(filename)
     if filename not in SymbolsCache:
-        imports=[]
-        exports=[]
+        imports:typing.List[Symbol]=[]
+        exports:typing.List[Symbol]=[]
         cmd=["dumpbin","/SYMBOLS",str(filename)]
         po=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         out,err=po.communicate()
@@ -92,22 +98,63 @@ def doesItExportAny(
     """
     if isinstance(symbolNames,str):
         symbolNames=[symbolNames]
-    exports=getSymbols(inFilename)[1]
+    _,exports=getSymbols(inFilename)
     ret=[]
     for symbolName in symbolNames:
-        if symbolName in exports:
-            ret.append(symbolName)
+        for export in exports:
+            if export==symbolName:
+                ret.append(symbolName)
     return ret
 
 
 def whoExports(
-    symbolName:str,filenames:PathsLike
-    )->typing.Iterable[typing.Tuple[str,bool]]:
+    symbolName:str,
+    filenames:PathsLike
+    )->typing.Iterable[typing.Tuple[Path,bool]]:
     """
     Determine which of a series of binary files exports a given symbol
     """
+    if isinstance(filenames,(Path,str)):
+        filenames=[filenames]
     for filename in filenames:
-        yield filename,doesItExport(symbolName,filename)
+        yield Path(filename),doesItExport(symbolName,filename)
+
+
+def doesItImport(symbolName:str,inFilename:PathLike)->bool:
+    """
+    Determine if a binary file imports a given symbol
+    """
+    return len(doesItImportAny(symbolName,inFilename))>0
+
+
+def doesItImportAny(
+    symbolNames:typing.Union[str,typing.Iterable[str]],
+    inFilename:PathLike)->typing.List[str]:
+    """
+    Determine which of a list of symbols a binary file imports
+    """
+    if isinstance(symbolNames,str):
+        symbolNames=[symbolNames]
+    imports,_=getSymbols(inFilename)
+    ret=[]
+    for symbolName in symbolNames:
+        for _import in imports:
+            if _import==symbolName:
+                ret.append(symbolName)
+    return ret
+
+
+def whoImports(
+    symbolName:str,
+    filenames:PathsLike
+    )->typing.Iterable[typing.Tuple[Path,bool]]:
+    """
+    Determine which of a series of binary files imports a given symbol
+    """
+    if isinstance(filenames,(Path,str)):
+        filenames=[filenames]
+    for filename in filenames:
+        yield Path(filename),doesItImport(symbolName,filename)
 
 
 def findBinaries(

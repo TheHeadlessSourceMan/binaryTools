@@ -9,6 +9,8 @@ import typing
 
 
 ItemCompatible=typing.Union["DependencyTreeItem",str]
+
+
 class DependencyTreeItem:
     """
     A single named item in the linkage tree
@@ -77,7 +79,11 @@ class DependencyTreeItem:
                 else:
                     yield requirement
 
-    def __eq__(self,other:ItemCompatible):
+    def __eq__(self, # type: ignore
+        other:ItemCompatible):
+        """
+        comparison operator
+        """
         if not isinstance(other,str):
             other=other.name
         return self.name==other
@@ -89,7 +95,9 @@ class DependencyTreeItem:
             ret.append(dep.__repr__(nextIndent))
         return '\n'.join(ret)
 
+
 SymbolCompatible=typing.Union["Symbol",str]
+
 class Symbol(DependencyTreeItem):
     """
     A single named symbol (either a Method or a Property)
@@ -142,7 +150,7 @@ class Module(DependencyTreeItem):
         Dependencies directly required by this item
         """
         alreadyMentioned:typing.Set[str]=set()
-        for imp in self.imports.values():
-            if imp.module.name not in alreadyMentioned:
-                alreadyMentioned.add(imp.module.name)
-                yield imp
+        for symbolName,symbol in self.imports.items():
+            if symbolName not in alreadyMentioned:
+                alreadyMentioned.add(symbolName)
+                yield symbol

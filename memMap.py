@@ -17,7 +17,7 @@ class MapEntry:
     def __init__(self,
         memoryMap:"MemoryMap",
         section:str,
-        module:"MapEntry",
+        module:typing.Optional["MapEntry"],
         entryType:str,
         name:str,
         address:int,
@@ -41,7 +41,10 @@ class MapEntry:
         """
         Get the memory where this item resides
         """
-        return self.memoryMap.getMemoryAt(self.start)
+        result=self.memoryMap.getMemoryAt(self.start)
+        if result is None:
+            raise IndexError(f'{self.name} not found in memory')
+        return result
 
     @property
     def sizePercent(self):
@@ -147,6 +150,7 @@ class MemoryMap:
                     continue
                 m=regex.match(line)
                 if m:
+                    section=''
                     if m.group('SectionName') is not None and m.group('SectionName'): # noqa:E501 # pylint: disable=line-too-long
                         # it's a new module
                         if m.group("Size") is None or not m.group("Size"):
@@ -193,7 +197,7 @@ class MemoryMap:
         """
         if '.' not in sys.path:
             sys.path.append('.')
-        from memMapUI import memMapToHtml # pylint: disable=import-error
+        from memMapUI import memMapToHtml # type: ignore # pylint: disable=import-error
         return memMapToHtml(self)
 
     @property
@@ -206,7 +210,7 @@ class MemoryMap:
         """
         if '.' not in sys.path:
             sys.path.append('.')
-        from memMapUI import memMapToHtmlElements # noqa:E501 # pylint: disable=import-error
+        from memMapUI import memMapToHtmlElements # noqa:E501 # type: ignore # pylint: disable=import-error
         return memMapToHtmlElements(self)
 
     def getEntriesByType(self,
@@ -359,14 +363,22 @@ class MemoryMap:
         ret=['Differences:']
         for diff,g1,g2 in self.differences(other):
             if diff.startswith("Only"):
-                if g1:
+                if g1 is not None:
                     ret.append(f" {g1.name} {diff}")
-                else:
+                elif g2 is not None:
                     ret.append(f" {g2.name} {diff}")
+                else:
+                    raise IndexError()
             elif diff.startswith("Size"):
-                ret.append(f" {g1.name} {diff} ({g1.size} != {g2.size})")
+                if g1 is not None and g2 is not None:
+                    ret.append(f" {g1.name} {diff} ({g1.size} != {g2.size})")
+                else:
+                    raise IndexError()
             elif diff.startswith("Location"):
-                ret.append(f" {g1.name} {diff} ({g1.location} != {g2.location})") # noqa:E501 # pylint: disable=line-too-long
+                if g1 is not None and g2 is not None:
+                    ret.append(f" {g1.name} {diff} ({g1.location} != {g2.location})") # noqa:E501 # pylint: disable=line-too-long
+                else:
+                    raise IndexError()
         return "\n".join(ret)
 
     def diagnose(self):
@@ -393,7 +405,7 @@ class MemoryMap:
                         and g2.module is not None \
                         and module!=g2.module:
                         #
-                        ret.append(f' {g.name} from {g.module.name} redefined in {g2.module.name}') # noqa:E501 # pylint: disable=line-too-long
+                        ret.append(f' {g.name} from {module.name} redefined in {g2.module.name}') # noqa:E501 # pylint: disable=line-too-long
                 else:
                     # check for overlapping symbols
                     if (g.start>=g2.start and g.start<g2.end)\

@@ -8,7 +8,7 @@ try:
     import pyshark # type: ignore
     from pyshark.packet.packet import Packet # type: ignore
     hasPyShark=True
-    def requirePyshark():
+    def requirePyshark(): # type: ignore
         """
         Function that raises exception when pyshark is not installed
         """
@@ -23,13 +23,13 @@ except ImportError:
         raise ImportError("pyshark library is required for this funtion. Install with\n\tpip install pyshark") # noqa: E501 # pylint: disable=line-too-long
 
 def saveCapture(
-    capture:pyshark.LiveCapture,
+    capture:pyshark.LiveCapture, # type: ignore
     filename:str):
     """
     Save a capture to file
     """
     requirePyshark()
-    with pyshark.FileCapture(output_file=filename) as file:
+    with pyshark.FileCapture(output_file=filename) as file: # type: ignore
         for packet in capture:
             # TODO: figure this out
             file.write(packet)
@@ -43,11 +43,11 @@ def loadCapture(
     requirePyshark()
     packet:Packet
     packets:typing.List[Packet]=[]
-    with pyshark.FileCapture(filename) as file:
+    with pyshark.FileCapture(filename) as file: # type: ignore
         for packet in file:
             if not hasattr(packet,"usb"):# or not hasattr(packet,"DATA"):
                 continue
-            if not packet.usb.transfer_type=='0x03':
+            if not packet.usb.transfer_type=='0x03': # type: ignore
                 continue
             packets.append(packet)
     if len(packets)<=0:
@@ -76,7 +76,7 @@ def extractPacketData(
         if not hasattr(packet,"ftdi-ft") \
             or not hasattr(packet,"usb"):
             continue
-        endpoint=int(packet.usb.endpoint_address,base=16)
+        endpoint=int(packet.usb.endpoint_address,base=16) # type: ignore
         if endpoint&endpointDirectionMask==endpointDirectionMask:
             directionIn=True
             if not includeDataIn:
@@ -118,6 +118,7 @@ def getOutputData(
         if isinstance(testThing,Packet):
             source=extractPacketData(source,includeDataIn=False)
         break
+    source=typing.cast(typing.Iterable[typing.Tuple[bool,bytes]],source)
     for isInput,data in source:
         if not isInput:
             ret.extend(data)
@@ -137,6 +138,7 @@ def getInputData(
         if isinstance(testThing,Packet):
             source=extractPacketData(source,includeDataOut=False)
         break
+    source=typing.cast(typing.Iterable[typing.Tuple[bool,bytes]],source)
     for isInput,data in source:
         if isInput:
             ret.extend(data)
